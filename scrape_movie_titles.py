@@ -73,7 +73,7 @@ def movie_title_crawler():
 				title = multipleReplace(title[0], wordDict)
 				year = movie_info_content[1].strip()
 				# insert into SQL database
-				insertstmt=("INSERT INTO MOVIE_TITLE (Title, Year) VALUES ('%s', '%s')" % (str(title[0]), str(year[0])))
+				insertstmt=("INSERT INTO MOVIE_TITLE (Title, Year) VALUES ('%s', '%s')" % (str(title), str(year)))
 				db.execute(insertstmt)
 	db.commit()
 	db.close()
