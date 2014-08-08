@@ -1,32 +1,24 @@
 library(shiny)
 library(rCharts)
 library(reshape2)
+library(ggplot2)
+library(gridExtra)
+source('misc.R')
 
 # load TMDB movie metadata
 load(file='TMDB_movie_metadata.Rdata')
 
 # create matr of correlation between co-occuring movie genres
-genre.index <- 10:ncol(tmdb.movie.metadata)
-unique.genre <- colnames(tmdb.movie.metadata)[genre.index]
+genres <- c("Animation", "Family", "Comedy", "Romance", "Drama", "Indie", 
+      "Crime", "Mystery", "Suspense", "Thriller", "Adventure" , "Action", 
+      "War", "Horror", "Fantasy", "Science_Fiction")
+#genre.index <- 10:ncol(movie.metadata)
+genre.index <- match(genres, colnames(tmdb.movie.metadata))
 genre.matrix <- tmdb.movie.metadata[, genre.index]
+#genre.index <- 10:ncol(tmdb.movie.metadata)
+#unique.genre <- colnames(tmdb.movie.metadata)[genre.index]
+#genre.matrix <- tmdb.movie.metadata[, genre.index]
 corrmatrix <- cor(genre.matrix, method='spearman') #store corr matrix
-
-
-'plotCor' <- function(df)
-{
-  df$revenue <- log(df$revenue, 10)
-  df$budget <- log(df$budget, 10)
-  fit <- lm(revenue ~ budget, data=df)
-  df$fitted_values <- fit$fitted.values
-
-  r1 <- rPlot(fitted_values ~ budget, data = df, type = 'line', size = list(const = 5))
-  r1$layer(x = "budget", y = "revenue", data = df, type = 'point', size = list(const = 2))
-  #r1 <- rPlot(revenue ~ budget, data = df, type = 'point', size = list(const = 3))
-  r1$addParams(width = 800, height = 500, dom = 'plot_cor', title = "Box office returns vs. movie budget")
-  r1$guides(y = list(title = "Box office", max = 14, size = list(const = 15)))
-  r1$guides(x = list(title = "Budget", min=0, max = 10, size=15))
-  return(r1)
-}
 
 #options(RCHART_WIDTH = 800)
 shinyServer(function(input, output) {
@@ -46,10 +38,16 @@ shinyServer(function(input, output) {
     return(corrmatplot)
   })
 
-  output$plot_cor <- renderChart({
-    r1 <- plotCor(tmdb.movie.metadata)
+  output$plot_cor_interactive <- renderChart({
+    r1 <- plotCorInteractive(tmdb.movie.metadata, input$yvar, input$xvar)
     return(r1)
   })
+  
+  output$plot_cor_static <- renderPlot({
+      #plot(tmdb.movie.metadata$revenue, tmdb.movie.metadata$budget)
+      p2 <- plotCorStatic(tmdb.movie.metadata, input$yvar, input$xvar)
+      return(p2)
+    })
 })
 
 
