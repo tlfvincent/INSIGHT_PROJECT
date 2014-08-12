@@ -3,6 +3,8 @@ library(rCharts)
 library(reshape2)
 library(ggplot2)
 library(gridExtra)
+library(RColorBrewer)
+cols = brewer.pal(9, 'Set1')
 source('misc.R')
 
 # load TMDB movie metadata
@@ -22,8 +24,19 @@ corrmatrix <- cor(genre.matrix, method='spearman') #store corr matrix
 
 #options(RCHART_WIDTH = 800)
 shinyServer(function(input, output) {
-  # You can access the value of the widget with input$file, e.g.
-  #output$plot <- renderPlot({ hist(input$file[ , 1]) })
+
+  output$predict_revenue <- renderPlot({
+    h1 <- PredictRevenue(tmdb.movie.metadata, input$budget)
+    return(h1)
+    })
+
+  output$rollercoaster <- renderPlot({
+    r1 <- ComputeEmotionalRollerCoaster(input$TextArea)
+    return(r1)
+    #return(p1)
+    })
+
+
 
   output$genre_cor <- renderChart({
     corrdata=as.data.frame(corrmatrix)
@@ -36,16 +49,16 @@ shinyServer(function(input, output) {
     corrmatplot$guides(x = list(numticks = 3))
     corrmatplot$addParams(height =500, width=800, dom = 'genre_cor')
     return(corrmatplot)
-  })
+    })
 
-  output$plot_cor_interactive <- renderChart({
-    r1 <- plotCorInteractive(tmdb.movie.metadata, input$yvar, input$xvar)
-    return(r1)
-  })
+  #output$plot_cor_interactive <- renderChart({
+  #  r1 <- plotCorInteractive(tmdb.movie.metadata, input$yvar, input$xvar)
+  #  return(r1)
+  #})
   
   output$plot_cor_static <- renderPlot({
       #plot(tmdb.movie.metadata$revenue, tmdb.movie.metadata$budget)
-      p2 <- plotCorStatic(tmdb.movie.metadata, input$yvar, input$xvar)
+      p2 <- plotCorStatic(tmdb.movie.metadata, input$yvar, input$xvar, cols)
       return(p2)
     })
 })
