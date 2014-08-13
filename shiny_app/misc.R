@@ -22,6 +22,37 @@
   return(r1)
 }
 
+'PredictFlopProb' <- function(text, budget)
+{
+  target.budget <- log(as.numeric(budget), 10)
+  df$revenue <- log(df$revenue, 10)
+  df$budget <- log(df$budget, 10)
+  fit <- lm(revenue ~ budget, data=df)
+  revenue.pred <- coef(fit)[1] + target.budget*coef(fit)[2]
+  df.pred <- data.frame(revenue_pred=revenue.pred, target_budget=target.budget)
+  a <- signif(coef(fit)[1], digits = 2)
+  b <- signif(coef(fit)[2], digits = 2)
+  textlab <- paste("y = ",b,"x + ",a, sep="")
+  p1 <- ggplot(df, aes(y=revenue, x=budget)) +
+          geom_point(alpha = 1/2) +
+          geom_smooth(size=2, method='lm', 
+            fill="blue", colour="darkblue", alpha=0.2) +
+          theme_classic() +
+          ylim(0, 10) + xlim(0, 10) +
+          ylab('revenue') +
+          annotate("text", x = 7, y = 10, 
+            label = textlab, 
+            color="black", size = 5, 
+            parse=FALSE) +
+          theme(axis.text.x=element_text(size=15),
+            axis.title.x=element_text(size=18),
+            axis.text.y=element_text(size=15),
+            axis.title.y=element_text(size=18)) +
+          geom_point(data=df.pred, aes(x = target_budget, y = revenue_pred), colour = "red", size=4)
+  return(p1)
+}
+
+
 'PredictRevenue' <- function(df, budget)
 {
   target.budget <- log(as.numeric(budget), 10)

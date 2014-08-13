@@ -4,6 +4,7 @@ library(reshape2)
 library(ggplot2)
 library(gridExtra)
 library(RColorBrewer)
+library(nnet)
 cols = brewer.pal(9, 'Set1')
 source('misc.R')
 
@@ -27,6 +28,7 @@ shinyServer(function(input, output) {
 
   output$predict_revenue <- renderPlot({
     h1 <- PredictRevenue(tmdb.movie.metadata, input$budget)
+    #h2 <- PredictFlopProb(input$TextArea, input$budget)
     return(h1)
     })
 
@@ -47,7 +49,7 @@ shinyServer(function(input, output) {
     corrmatplot$guides("{color: {scale: {type: gradient2, lower: 'red', middle: 'white', upper: 'blue', midpoint: 0}}}")
     corrmatplot$guides(y = list(numticks = length(unique(corrdatamelt$Variable1))))
     corrmatplot$guides(x = list(numticks = 3))
-    corrmatplot$addParams(height =500, width=800, dom = 'genre_cor')
+    corrmatplot$addParams(height =500, width=500, dom = 'genre_cor')
     return(corrmatplot)
     })
 
