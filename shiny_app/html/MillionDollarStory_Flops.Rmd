@@ -1,0 +1,10 @@
+<center>
+# MillionDollarStory
+## The flops
+</center>
+
+<hr style="height:7px;border:none;color:#333;background-color:#333;" />
+
+
+### The most obvious flop movies
+Some movie flops were so floppy that the algorithm was able to easily identify them. These 'Expected Flops' exhibit the signatures that are most characteristic of a blockbuster movie, and could be used as a template for future screenplay writers. Here are the bottom 5:

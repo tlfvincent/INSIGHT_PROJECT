@@ -1,0 +1,10 @@
+54.84.82.196
+
+
+
+shinyapps::setAccountInfo(
+    name="statofmind", 
+    token="105E1955A58463EECC1D1A4C005BEED8", 
+    secret="9N6wGwYOMdwJvoZecW1JUmQ/RDWAbo08c1I3UIbe")
+
+install.packages(c('ggplot2', 'shiny'))
