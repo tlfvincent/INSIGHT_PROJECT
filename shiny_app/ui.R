@@ -56,7 +56,9 @@ shinyUI(fluidPage(
             column(5, 
               h4(textOutput("text_budget")),
               br(),
-              h4(textOutput("flop_prob"))
+              h4(textOutput("flop_prob")),
+              br(),
+              h4(textOutput("profit_ratio"))
             ),
             column(7,
               plotOutput("predict_revenue")
@@ -68,26 +70,21 @@ shinyUI(fluidPage(
            <font color='#3E2D8E'><b>Shiny</b></font> and 
            <font color='#159332'><b>Rstudio</b></font>. It is distributed under
            the licence <a href='http://www.wtfpl.net/'>WTFPL</a>."))
-          #,
-          #br(),
-          #h3("Emotional rollercoaster"),
-          #plotOutput("rollercoaster")
         ), 
         tabPanel("Movie Analytics",
           h3("Emotional rollercoaster"),
-          htmlOutput("rollercoaster")
-          #plotOutput("rollercoaster")#,
-          #plotOutput("rollercoaster1")
+          htmlOutput("rollercoaster"),
+          htmlOutput("TextEmotion")
           #includeMarkdown("html/MillionDollarStory_Blockbusters.Rmd")
           #includeHTML("html/MillionDollarStory_Blockbusters.html")
           ),
-        tabPanel("Expected Blockbusters"
+        #tabPanel("Expected Blockbusters"
           #includeMarkdown("html/MillionDollarStory_Blockbusters.Rmd")
           #includeHTML("html/MillionDollarStory_Blockbusters.html")
-          ),
-        tabPanel("Expected Flops"
+        #  ),
+        #tabPanel("Expected Flops"
           #includeHTML("html/MillionDollarStory_Blockbusters.html")
-          ),
+        #  ),
         tabPanel("Behind the Scenes",
           #helpText("Enter information about yourself below to make the estimate more accurate.")
           includeHTML("html/MillionDollarStory_BehindTheScenes.html")

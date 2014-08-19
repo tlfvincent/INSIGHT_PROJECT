@@ -6,29 +6,36 @@ library(gridExtra)
 library(RColorBrewer)
 library(glmnet)
 library(googleVis)
+library(RCurl)
+library(rjson)
+library(plyr)
+platform <- sessionInfo()$R.version$platform
+linux <- stringr::str_detect(platform, "linux")
 cols = brewer.pal(9, 'Set1')
 source('data/misc.R')
 
 # load TMDB movie metadata
 load(file='data/TMDB_movie_metadata.Rdata')
 
-# load GLMNET fit for rating predictions
+# NRC emotion lexicon
+load(file='data/NRC_emotion_lexicon.Rdata')
 
+# load word2vec word clusters
+load(file='data/word2vec_clusters.Rdata')
 
 # create matr of correlation between co-occuring movie genres
-genres <- c("Animation", "Family", "Comedy", "Romance", "Drama", "Indie", 
-      "Crime", "Mystery", "Suspense", "Thriller", "Adventure" , "Action", 
-      "War", "Horror", "Fantasy", "Science_Fiction")
+#genres <- c("Animation", "Family", "Comedy", "Romance", "Drama", "Indie", 
+#      "Crime", "Mystery", "Suspense", "Thriller", "Adventure" , "Action", 
+#      "War", "Horror", "Fantasy", "Science_Fiction")
 #genre.index <- 10:ncol(movie.metadata)
-genre.index <- match(genres, colnames(tmdb.movie.metadata))
-genre.matrix <- tmdb.movie.metadata[, genre.index]
-corrmatrix <- cor(genre.matrix, method='spearman') #store corr matrix
+#genre.index <- match(genres, colnames(tmdb.movie.metadata))
+#genre.matrix <- tmdb.movie.metadata[, genre.index]
+#corrmatrix <- cor(genre.matrix, method='spearman') #store corr matrix
 
 #options(RCHART_WIDTH = 800)
 shinyServer(function(input, output) {
 
   output$text_budget <- renderText({ 
-      #flop.prob <- PredictFlopProb(input$TextArea, input$budget)
       #rating.score <- PredictRating(input$TextArea, input$budget)
       sprintf('Your movie budget: $%s', input$budget)
     })
@@ -38,17 +45,30 @@ shinyServer(function(input, output) {
       sprintf('Flop probability: %s', flop.prob)
     })
 
+    output$profit_ratio <- renderText({ 
+      profit.ratio <- PredictProfit(input$TextArea, 
+                                input$budget, 
+                                fit, 
+                                word2vec.clusters)
+      sprintf('Profit ratio: %s', profit.ratio)
+    })
+
   output$predict_revenue <- renderPlot({
     h1 <- PredictRevenue(tmdb.movie.metadata, input$budget)
     return(h1)
     })
 
   output$rollercoaster <- renderGvis({
-    r1 <- ComputeEmotionalRollerCoaster(input$TextArea)
+    r1 <- ComputeEmotionalRollerCoaster(input$TextArea, linux)
     #r1 <- ComputeEmotionalRollerCoaster(input$InputFile)
     return(r1)
     #return(p1)
-    })
+  })
+
+    output$TextEmotion <- renderGvis({
+    r1 <- FindTextEmotion(nrc.lexicon, input$TextArea)
+    return(r1)
+  })
 
     #dInput = reactive({
     #infile = input$InputFile

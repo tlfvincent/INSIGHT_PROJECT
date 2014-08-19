@@ -1,37 +1,131 @@
-'ComputeEmotionalRollerCoaster' <- function(text)
+'PrintScreenplay' <- function(text)
 {
+  ############################################################
+  # This function prints out the input screenplay text
+  # to a file named input.txt to be scanned by other functions.
+  # This is necessary to speed up computation time.
+  ############################################################
+  
   input.file <- 'input.txt'
   write.table(text, file=input.file, quote=FALSE, row.names=FALSE, col.names=FALSE)
-  stmt <- sprintf('curl --data-binary @%s "http://www.sentiment140.com/api/bulkClassify?query=movie" >sentiment.csv', input.file)  
-  system(stmt)
-  sentiment <- read.csv(file='sentiment.csv', header=FALSE)
-  sentiment <- sentiment[, 1]-2
-  window <- c()
-  for(i in 1:(length(sentiment)-2))
+}
+
+'PredictFlopProb' <- function(text, budget)
+{
+  PrintScreenplay(text)
+  #y.pred <- predict(fit, X.test, lambda=fit$lambda.min)
+  #flop.prob <- predict(fit, X)
+  flop.prob <- 0.95
+  return(flop.prob)
+}
+
+'PredictProfit' <- function(text, budget, rf.fit, word2vec.clusters)
+{
+  ############################################################
+  # This function predicts the expected profit ration from 
+  # user-defined budget and screenplay text. The underlying
+  # algorithm relies on random forest regression
+  ############################################################
+
+  # count number of word2vec clusters
+  nb.clusters <- unique(word.clusters[,2])
+  screenplay <- scan('input.txt', sep=' ', what='raw()')
+  screenplay.words <- table(as.vector(screenplay))
+  words.freq <- table(screenplay.words)
+  words.match <- match(names(words.freq), word2vec.clusters[, 1])
+  #remove NAs
+  index.na <- which(is.na(words.match=='TRUE'))
+  if(length(index.na) > 0)
   {
-   window <- c(window, sum(sentiment[i:(i+2)]))
+    words.match <- words.match[-index.na]
+    words.freq <- words.freq[-index.na]
   }
-  #mat <- matrix(window,nrow = 30,ncol = length(window), byrow=TRUE)
+  # populate test vector
+  screenplay.test <- mat.or.vec()
+  for(w in 1:length(words.match))
+  {
+    index.col <- as.numeric(word.clusters[words.match[w], 2]) + 1
+    word2vec.mat[f, index.col] <- word2vec.mat[f, index.col] + as.vector(words.freq[w])
+  }
+  
+
+  profit.ratio <- 100
+  return(profit.ratio)
+}
+
+'FindTextEmotion' <- function(lexicon, text)
+{
+  PrintScreenplay(text)
+  emotions <- colnames(lexicon)
+  words <- row.names(lexicon)
+  temp <- mat.or.vec(length(emotions), 1)
+
+  screenplay <- scan('input.txt', sep=' ', what='raw()')
+  screenplay.words <- table(as.vector(screenplay))
+  words.match <- match(names(screenplay.words), words)
+  #remove NAs
+  words.match <- words.match[!is.na(words.match)]
+  temp <- apply(lexicon[words.match, ], 2, sum)
+
+  print('plotting space')
+  freq <- round(temp[-c(6,7)]/sum(temp[-c(6,7)]), 2)
+  df <- data.frame(emotions=emotions[-c(6,7)], frequency=freq)
+  Bar <- gvisBarChart(df, xvar="emotions", yvar="frequency", 
+                  options=list(isStacked=TRUE, 
+                  title="Frequency of feelings in movie", 
+                  vAxis="{title:''}",
+                  hAxis="{title:'Frequency in text'}",
+                  width=900)
+                  )
+  return(Bar)
+}
+
+'ComputeEmotionalRollerCoaster' <- function(text, linux)
+{
+  ## This code is (heavily) adapated from the one provided by Chris Okugami
+  ## Github project can be found here: https://github.com/okugami79/sentiment140
+  text <- sapply(text, function(x) strsplit(x, split='\\n', perl=TRUE))
+  text <- text[[1]]
+  #x <- sentiment(text)
+  r <- dynCurlReader()  
+  # get rid of single quote 
+  text <- gsub("'", ' ' ,text)
+  text <- gsub('"', ' ' ,text)
+  x  <- paste( sprintf("{'text': '%s'}", text),
+         collapse = "," ) 
+  curlPerform(postfields =   
+                sprintf('{"language": "auto", "data": [%s]}', x),
+              url = "http://www.sentiment140.com/api/bulkClassifyJson?query=movie", 
+              verbose = FALSE,
+              post = 1L, 
+              writefunction = r$update)
+  print('finished sentiment 140')
+  sentiment.out <- lapply(r$value(), fromJSON)
+  polarity <- unlist(lapply(sentiment.out[[1]]$data, function(x) x$polarity))
+  polarity <- polarity - 2
+  window <- c()
+  for(i in 1:(length(polarity)-20))
+  {
+   window <- c(window, sum(polarity[i:(i+20)]))
+  }
+  #input.file <- 'input.txt'
+  #write.table(text, file=input.file, quote=FALSE, row.names=FALSE, col.names=FALSE)
+  #stmt <- 'curl --data-binary @input.txt "http://www.sentiment140.com/api/bulkClassify?query=movie" >sentiment.csv' 
+  #system(stmt)
+  #print('running sentiment 140')
+  #info <- system(stmt, intern=TRUE)
+  #print('finished sentiment 140')
+  #sentiment <- read.csv(file='sentiment.csv', header=FALSE)
+  #sentiment <- sentiment[, 1]-2
+  #window <- c()
+  #for(i in 1:(length(sentiment)-20))
+  #{
+  # window <- c(window, sum(sentiment[i:(i+20)]))
+  #}
   neg <- window
   neg[which(neg>0)] <- 0
   pos <- window
   pos[which(pos<0)] <- 0
-  #feeling <- c(rep('pos', length(window)), rep('neg', length(window)))
-  #color <- c(rep('royalblue3', length(window)), rep('indianred3', length(window)))
-  #df <- data.frame(time = rep(1:length(window), times=2), 
-  #                sentiment = c(pos, neg),
-  #                feeling=feeling,
-  #                color=color)
-  #r2 <- ggplot(df, aes(x=time, y=sentiment)) +
-  #    #geom_line(color=color, alpha=0.3) +
-  #    geom_smooth(aes(fill = feeling, colour=feeling), size=1.5) +
-  #    theme_classic()+
-  #    xlab('Line number') + ylab('Overall sentiment') +
-  #    theme(axis.text.x=element_text(size=14), 
-  #          axis.title.x=element_text(size=16),
-  #          axis.text.y=element_text(size=14),
-  #          axis.title.y=element_text(size=16))
-  #return(r2)
   df <- data.frame(time = 1:length(window), 
                   pos = pos, 
                   neg=neg)
@@ -41,24 +135,10 @@
                                       title="Sentiment timescale of movie", 
                                       vAxis="{title:'Sentiment'}",
                                       hAxis="{title:'Line number'}",
-                                      width=1000))
+                                      width=950))
   return(SteppedArea)
   
 }
-
-'PredictFlopProb' <- function(text, budget)
-{
-  #y.pred <- predict(fit, X.test, lambda=fit$lambda.min)
-  #flop.prob <- predict(fit, X)
-  flop.prob <- 0.95
-  return(flop.prob)
-}
-
-'PredictRating' <- function(text, budget)
-{
-
-}
-
 
 'PredictRevenue' <- function(df, budget)
 {

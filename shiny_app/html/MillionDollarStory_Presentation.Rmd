@@ -1,29 +1,35 @@
 ---
-title: "MillionDollarStory"
-author: "ThomasVincent"
+title: "MillionDollar$tory"
+author: "ThomasVincent (tlfvincent@gmail.com)"
 date: "August 15, 2014"
-output: ioslides_presentation
+output: 
+  ioslides_presentation:
+    widescreen: true
 ---
 
-## R Markdown
+## About me
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+- Ph.D in BioStastics where I worked on predicting protein 3-D structure from sequence information.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+- Currently a postdoctoral associate at Weill Cornell Medical College (New York), where I try and detect genetic mutations that separate smokers that get lung disease to those that don't.
 
-## Slide with Bullets
+## MillionDollar$tory
 
 - Bullet 1
 - Bullet 2
 - Bullet 3
 
-## Slide with R Code and Output
+## Data Analysis
 
 ```{r}
 summary(cars)
 ```
+## Movie analytics
+![](profit_by_genre.png)
+***
+This text will appear to the right
 
-## Slide with Plot
+## Predicting Flops
 
 ```{r, echo=FALSE}
 plot(cars)

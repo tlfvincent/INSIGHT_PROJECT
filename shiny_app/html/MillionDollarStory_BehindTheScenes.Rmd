@@ -29,7 +29,13 @@ print(MovieProfit, "chart")
 ```
 
 ### Movie revenue across time
-The first analysis we can run is to check the overall relationship movie box office revenue and allocated budget. We can observe a very strong linear relationsip between these two variables. 
+The first analysis we can run is to check the overall relationship movie box office revenue and allocated budget. We can observe a very strong linear relationship between these two variables. 
+
+<center>
+![Test picture](box_office_revenue_by_year.png)
+</center>
+
+<center>
 ![Test picture](img1_budget_worldwide_revenue.png)
 </center>
 
@@ -54,7 +60,7 @@ ReleasedMovie <- gvisTable(as.data.frame(movies.released.1992),
 print(ReleasedMovie, "chart")
 ```
 
-### Are moving getting longer?
+### Are movies getting longer?
 
 <center>
 ![Test picture](movie_runtime_distribution.png)
@@ -82,6 +88,16 @@ ActorTable <- gvisTable(as.data.frame(top.rank.actor),
                       options=list(page='enable'))
 print(ActorTable, "chart")
 ```
+
+### The impact of movie genre
+<center>
+![Test picture](profit_by_genre.png)
+</center>
+
+
+<center>
+![Test picture](movie_genre_NRC_lexicon.png)
+</center>
 
 ### The colors of movie posters
 
