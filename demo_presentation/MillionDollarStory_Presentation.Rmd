@@ -1,0 +1,78 @@
+---
+title: "MillionDollar$tory"
+author: "ThomasVincent (tlfvincent@gmail.com)"
+date: "August 15, 2014"
+output: 
+  ioslides_presentation
+---
+
+## About me
+- Ph.D in BioStastics where I worked on predicting protein 3-D structure from sequence information.
+<center>
+<img src="protein_folding_problem.png" height="150px" width="400px" />
+</center>
+- Currently a postdoctoral associate at Weill Cornell Medical College (New York), where I try and detect genetic mutations that can explain why some smokers suffer from lung disease while others don't.
+<center>
+<img src="smoking_lung.jpg" height="150px" width="400px" />
+</center>
+
+## MillionDollar$tory
+<center>
+<img src="box_office_revenue_by_year.png" height="300px" width="750px" />
+</center>
+
+- Although the movie industry is a growing multi-billion dollar endeavor, there are no hardset guidelines to predict box office income.
+- <strong>Is it possible to leverage screenplay information to predict box office revenue and flop probability?</strong>
+
+## Data Collection
+* Collect movie metadata from:
+    + IMDB and Rotten Tomatoes API
+* Scrape movie screenplay data from:
+    + springfieldspringfield.co.uk
+ * In total, we have 2428 movies with data available for:
+    + revenue
+    + budget
+    + movie screenplay
+
+<img src="logo_rottentomatoes.png" height="150px" width="190px" />
+<img src="logo_IMDB.png" height="150px" width="190px" />
+
+## Movie analytics
+- This is a data-rich problem.
+- Can look at a variety of effects such as the role of movie genre, the value of actors, historical trends in movie runtime etc...
+
+<center>
+<img src="profit_by_genre.png" height="350px" width="700px" />
+</center>
+
+## Movie analytics
+- The data also offers the opportunity for some sentiment analysis of movie scripts.
+
+<center>
+<img src="movie_genre_NRC_lexicon.png" height="400px" width="600px" />
+</center>
+
+## Predicting Flops
+<center>
+<img src="img3.png" height="250px" width="550px" />
+</center>
+- There a high linear relationship between movie budget and box office revenue.
+- Instead, it is more interesting to predict the flop probability of a movie.
+- Because we ignore all metadata information, the largest challenge is the identification, extraction and selection of features that may be available in movie scripts.
+
+## Predicting Flops
+- word2vec - Efficient Estimation of Word Representations in Vector Space (published by Google)
+- Allows to cluster words with similar meaning. These clusters can be used as features in a predictive model.
+- Benchmarked a variety of models for flop classification, logistic regression (LR), Naive Bayes (NB), SVM, Gradient boosting (GBM), Random Forest (RF), Neural Networks (NN) etc...
+
+<center>
+<img src="model_performance.png" height="200px" width="600px" />
+</center>
+
+## Project Toolkit
+<center>
+<img src="project_toolkit.png" height="550px" width="800px" />
+</center>
+
+
+rmarkdown::render("MillionDollarStory_Presentation.Rmd")
