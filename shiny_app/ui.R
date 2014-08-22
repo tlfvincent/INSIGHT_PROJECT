@@ -1,4 +1,5 @@
 require(rCharts)
+library(shinyBS)
 options(RCHART_LIB = 'polycharts')
 
 inputTextarea <- function(inputId, value="", nrows, ncols) {
@@ -42,11 +43,10 @@ shinyUI(fluidPage(
       style = "font-family: 'Minion Pro';
          text-align: center;
          background-image: url('final.png');
-        padding: 40px"),
+        padding: 37px"),
   br(),
   # Application title
   #titlePanel("MillionDollar$tory"), 
-  
   
   # Sidebar with controls to select the random distribution type
   fluidRow(
@@ -64,7 +64,7 @@ shinyUI(fluidPage(
         h5(helpText("Enter your movie screenplay")),
         inputTextarea('TextArea', '', 16, 25),
         #textInput('TextArea', '',dialogue),
-        submitButton("Update View", icon("refresh"))
+        submitButton('Update View', icon("refresh"))
       )
     ),
     

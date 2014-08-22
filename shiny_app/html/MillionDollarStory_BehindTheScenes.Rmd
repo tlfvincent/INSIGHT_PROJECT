@@ -40,6 +40,11 @@ G <- gvisGeoChart(country.hits, locationvar = "country", colorvar = "LogMovieCou
 print(G, "chart")
 ```
 
+### The impact of genre on movie profitability
+<center>
+![Test picture](profit_by_genre.png)
+</center>
+
 
 ### Movie revenue across time
 The first analysis we can run is to check the overall relationship between movie box office income and allocated movie budget. We can observe a very strong linear relationship between these two variables. 
@@ -48,6 +53,8 @@ The first analysis we can run is to check the overall relationship between movie
 ![Test picture](box_office_revenue_by_year.png)
 </center>
 
+We can also check the overall relationship movie box office revenue and allocated budget. We can observe a very strong linear relationship between these two variables. 
+
 <div class="columns-2">
 <center>
 <img src="img1_budget_worldwide_revenue.png" height="400px" width="400px" />
@@ -55,7 +62,6 @@ The first analysis we can run is to check the overall relationship between movie
 </center>
 </div>
 
-We can also check the overall relationship movie box office revenue and allocated budget. We can observe a very strong linear relationship between these two variables. 
 
 
 ### Seasonal effects on movie box office revenue
@@ -110,6 +116,8 @@ print(DirectorTable, "chart")
 
 ### The value of actors
 Actor must have acted in at least 5 movies
+
+<center>
 ```{r results='asis', echo=FALSE}
 suppressPackageStartupMessages(library(googleVis))
 load(file='top_actors.Rdata')
@@ -117,10 +125,6 @@ ActorTable <- gvisTable(as.data.frame(top.rank.actor),
                       options=list(page='enable'))
 print(ActorTable, "chart")
 ```
-
-### The impact of movie genre
-<center>
-![Test picture](profit_by_genre.png)
 </center>
 
 

@@ -11,6 +11,7 @@ library(rjson)
 library(plyr)
 library(scales)
 library(markdown)
+library(shinyBS)
 
 suppressPackageStartupMessages(library(googleVis))
 cols = brewer.pal(9, 'Set1')
@@ -38,20 +39,20 @@ load(file='data/random_forest_profit_model.Rdata')
 #corrmatrix <- cor(genre.matrix, method='spearman') #store corr matrix
 
 #options(RCHART_WIDTH = 800)
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 
   output$profit_ratio <- renderUI({ 
     screenplay.profitability <- PredictProfit(input$TextArea, 
                                 input$budget, 
                                 rf.fit, 
                                 word2vec.clusters)
-    profit.ratio <- log(screenplay.profitability[[1]], 2)
-    input.budget <- log(as.numeric(input$budget), 10)
-    revenue.income <- screenplay.profitability[[2]] * input.budget
+    profit.ratio <- round(screenplay.profitability[[1]], 1)
+    input.budget <- as.numeric(input$budget) / 1e6
+    revenue.income <- screenplay.profitability[[2]]
     if(input$budget != 0 & input$TextArea != '')
     {
       str1 <- sprintf('The expected profit ratio of this screenplay is %s.', profit.ratio)
-      str2 <- sprintf('For a budget of $%s, you will earn an estimated box office income of $%s.', input$budget, revenue.income)
+      str2 <- sprintf('For a budget of $%s millions, you will earn an estimated box office income of $%s millions.', input.budget, revenue.income)
       HTML(paste(str1, str2, sep = '<br/>'))
     }
     else
@@ -63,12 +64,6 @@ shinyServer(function(input, output) {
       HTML(str1)
     }
   })
-
-  #output$myList <- renderUI(
-  #  HTML("<ul><li>...text...</li><li>...more text...</li></ul>")
-  #)
-
-
 
   output$predict_revenue <- renderPlot({
     if(input$budget != 0 & input$TextArea != '')

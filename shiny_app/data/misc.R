@@ -52,8 +52,8 @@
   # add budget information
   ytest <- c(target.budget, word2vec.test)
   names(ytest) <- c('budget', 1:500)
-  profit.ratio <- 2^(round(predict(rf.fit, ytest), 1))
-  revenue.income <- round(profit.ratio * target.budget * 1000000 , 1)
+  profit.ratio <- 2^(predict(rf.fit, ytest))
+  revenue.income <- round(profit.ratio * target.budget , 1)
   print(profit.ratio)
   return(list(profit.ratio, revenue.income, ytest))
 }
@@ -111,19 +111,21 @@
   ytest <- as.data.frame(do.call(rbind, ytest))
   colnames(ytest) <- c('budget', 1:500)
   yhat <- predict(rf.fit, ytest)
-  df <- data.frame(budget=budget.range, profitability=yhat)
-  df.profit <- data.frame(budget=target.budget, profit=log(profit.ratio, 2))
+  df <- data.frame(budget=budget.range, profitability=2^yhat)
+  #df.profit <- data.frame(budget=target.budget, profit=log(profit.ratio, 2))
+  df.profit <- data.frame(budget=target.budget, profit=profit.ratio)
   p2 <- ggplot(df, aes(x=budget*1e6, y=profitability)) +
        geom_line(size=2, color='royalblue3') +
        theme_bw() +
+       ylim(0, 10) +
        ylab('Movie Profitability') + xlab('Movie budget') +
        theme(axis.text.x=element_text(size=14),
           axis.title.x=element_text(size=16),
           axis.text.y=element_text(size=14),
           axis.title.y=element_text(size=16)) +
-       geom_point(data=df.profit, aes(x=budget, y=profit), size=4, color='red', pch=18) +
-       scale_x_continuous(trans=log10_trans()) +
-       scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))
+       geom_point(data=df.profit, aes(x=budget, y=profit), size=4, color='red', pch=18) #+
+       #scale_x_continuous(trans=log10_trans()) +
+       #scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))
 
 
   #df.all <- data.frame(group=rep('profit', length(profit)), profit=profit)
@@ -208,20 +210,6 @@
   {
    window <- c(window, sum(polarity[i:(i+20)]))
   }
-  #input.file <- 'input.txt'
-  #write.table(text, file=input.file, quote=FALSE, row.names=FALSE, col.names=FALSE)
-  #stmt <- 'curl --data-binary @input.txt "http://www.sentiment140.com/api/bulkClassify?query=movie" >sentiment.csv' 
-  #system(stmt)
-  #print('running sentiment 140')
-  #info <- system(stmt, intern=TRUE)
-  #print('finished sentiment 140')
-  #sentiment <- read.csv(file='sentiment.csv', header=FALSE)
-  #sentiment <- sentiment[, 1]-2
-  #window <- c()
-  #for(i in 1:(length(sentiment)-20))
-  #{
-  # window <- c(window, sum(sentiment[i:(i+20)]))
-  #}
   neg <- window
   neg[which(neg>0)] <- 0
   pos <- window
