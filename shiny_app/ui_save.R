@@ -22,27 +22,22 @@ Remember the people who brought you Korea?
 That's right, the U.S. Army. If it's being done correctly, here or abroad, it's probably not being done by the Army."
 
 shinyUI(fluidPage(
-  #theme = "bootstrap.css",
+  #theme = "styles.css",
   tags$head(
         # Include our custom CSS
         includeCSS("www/styles.css")
   ),
   tags$head(tags$style(HTML("
-    .shiny-body-output {
-      background-color:#D3D3D3;
-    }
-  "))),
-
-  tags$head(tags$style(HTML("
     .shiny-text-output {
-      background-color:#D3D3D3;
+      background-color:#fff;
     }
   "))),
-  h1("", span("", style = "font-weight: 300"), 
+  
+  h1("MillionDollar$tory", span("", style = "font-weight: 300"), 
       style = "font-family: 'Minion Pro';
-         text-align: center;
-         background-image: url('final.png');
-        padding: 40px"),
+        color: #fff; text-align: center;
+        background-image: url('best-posters-of-all-time.jpg');
+        padding: 22px"),
   br(),
   # Application title
   #titlePanel("MillionDollar$tory"), 
@@ -52,46 +47,52 @@ shinyUI(fluidPage(
   fluidRow(
     column(3,
       absolutePanel(id = "controls", class = "modal", fixed = TRUE, draggable = TRUE,
-        top = 140, left = "auto", right = 1080, bottom = "auto", 
-        width = 270, height = "auto", cursor="default",
+        top = 60, left = "auto", right = 20, bottom = "auto",
+        width = 270, height = "auto",
       #wellPanel(
-        h4("Import data here"),
+        h4("Data importation"),
  
     # Button to import data
-      h5(helpText("Enter an estimated movie budget")),
-        textInput('budget', "", "0"),
+        textInput('budget', "Enter an estimated movie budget", "0"),
         # create input text area to paste script
-        h5(helpText("Enter your movie screenplay")),
         inputTextarea('TextArea', '', 16, 25),
         #textInput('TextArea', '',dialogue),
         submitButton("Update View", icon("refresh"))
+        # create command to upload file
+        #fileInput("InputFile", 
+        #          label = h4("Upload file"))
       )
     ),
     
   # Show a tabset that includes a plot, summary, and table view
   # of the generated distribution
     column(9,
-      absolutePanel(id = "controls", class = "modal", fixed = FALSE, draggable = TRUE,
-        top = 140, left = "auto", right = 20, bottom = "auto", 
-        width = 1000, height = "auto", cursor="default",
       tabsetPanel(type = "tabs", position = "above", 
-        tabPanel(h4("App"), 
+        tabPanel("App", 
         fluidRow(
-              h4(htmlOutput("profit_ratio")),
+            #column(4, 
+              #h4(textOutput("text_budget")),
+              #br(),
+              #h4(textOutput("flop_prob")),
+              #br(),
+              h5(htmlOutput("profit_ratio")),
+              #uiOutput("myList")
+            #),
+            #column(8,
               plotOutput("predict_revenue")
+            #)
           )
         ), 
-        tabPanel(h4("Movie Analytics"),
+        tabPanel("Movie Analytics",
           h3("Emotional rollercoaster"),
           htmlOutput("rollercoaster"),
           htmlOutput("TextEmotion")
           ),
-        tabPanel(h4("Behind the Scenes"),
+        tabPanel("Behind the Scenes",
           #helpText("Enter information about yourself below to make the estimate more accurate.")
           includeHTML("html/MillionDollarStory_BehindTheScenes.html")
           )
       )
-    )
     )
   )
 ))

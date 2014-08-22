@@ -5,19 +5,19 @@
   # to a file named input.txt to be scanned by other functions.
   # This is necessary to speed up computation time.
   ############################################################
-  
   input.file <- 'input.txt'
+  unlink(input.file)
   write.table(text, file=input.file, quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
 
-'PredictFlopProb' <- function(text, budget)
-{
-  PrintScreenplay(text)
+#'PredictFlopProb' <- function(text, budget)
+#{
+#  PrintScreenplay(text)
   #y.pred <- predict(fit, X.test, lambda=fit$lambda.min)
   #flop.prob <- predict(fit, X)
-  flop.prob <- 0.95
-  return(flop.prob)
-}
+#  flop.prob <- 0.95
+#  return(flop.prob)
+#}
 
 'PredictProfit' <- function(text, budget, rf.fit, word2vec.clusters)
 {
@@ -28,7 +28,9 @@
   ############################################################
 
   # count number of word2vec clusters
-  nb.clusters <- unique(word.clusters[,2])
+  PrintScreenplay(text)
+  target.budget <- as.numeric(budget) / 1000000
+  nb.clusters <- unique(word2vec.clusters[,2])
   screenplay <- scan('input.txt', sep=' ', what='raw()')
   screenplay.words <- table(as.vector(screenplay))
   words.freq <- table(screenplay.words)
@@ -40,21 +42,120 @@
     words.match <- words.match[-index.na]
     words.freq <- words.freq[-index.na]
   }
-  # populate test vector
-  screenplay.test <- mat.or.vec()
+  # populate word2vec test vector
+  word2vec.test <- mat.or.vec(length(nb.clusters), 1)
   for(w in 1:length(words.match))
   {
-    index.col <- as.numeric(word.clusters[words.match[w], 2]) + 1
-    word2vec.mat[f, index.col] <- word2vec.mat[f, index.col] + as.vector(words.freq[w])
+    index.col <- as.numeric(word2vec.clusters[words.match[w], 2]) + 1
+    word2vec.test[index.col] <- word2vec.test[index.col] + as.vector(words.freq[w])
   }
-  
+  # add budget information
+  ytest <- c(target.budget, word2vec.test)
+  names(ytest) <- c('budget', 1:500)
+  profit.ratio <- 2^(round(predict(rf.fit, ytest), 1))
+  revenue.income <- round(profit.ratio * target.budget * 1000000 , 1)
+  print(profit.ratio)
+  return(list(profit.ratio, revenue.income, ytest))
+}
 
-  profit.ratio <- 100
-  return(profit.ratio)
+'PredictRevenue' <- function(df, budget, profit.ratio, ytest, rf.fit)
+{
+  print('Running predict revenue')
+  #target.budget <- log(as.numeric(budget), 10)
+  target.budget <- as.numeric(budget)
+  #df$revenue <- log(df$revenue, 10)
+  #df$budget <- log(df$budget, 10)
+  #profit <- log((df$revenue / df$budget), 2)
+  profit <- df$revenue / df$budget
+  status <- rep('loss', nrow(df))
+  status[which(profit > 1)] <- 'profit'
+  df$status <- as.factor(status)
+  df <- df[which(df$budget >= 1e4), ]
+
+  #fit <- lm(log(revenue, 10) ~ log(budget, 10), data=df)
+  #revenue.pred <- coef(fit)[1] + target.budget*coef(fit)[2]
+  #df.pred <- data.frame(revenue_pred=revenue.pred, 
+  #                target_budget=target.budget)
+  #a <- signif(coef(fit)[1], digits = 2)
+  #b <- signif(coef(fit)[2], digits = 2)
+  #textlab <- paste("y = ",b,"x + ",a, sep="")
+
+  revenue.pred <- profit.ratio * target.budget
+  df.pred <- data.frame(revenue_pred=revenue.pred, 
+                  target_budget=target.budget)
+
+  cols <- c("profit" = "royalblue3","loss" = "firebrick3")
+  p1 <- ggplot(df, aes(y=revenue, x=budget, color=status)) +
+    geom_point(alpha = 0.5, size=1.5) +
+    theme_classic() +
+    geom_abline(intercept = 0, slope=1, 
+      colour = "indianred3", size = 1.5, linetype='dashed') +
+    ylab('Movie Revenue') + xlab('Movie budget') +
+    scale_colour_manual(values = cols) + 
+    scale_y_continuous(trans=log10_trans()) + 
+    scale_x_continuous(trans=log10_trans()) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+    scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+    theme(axis.text.x=element_text(size=14),
+      axis.title.x=element_text(size=16),
+      axis.text.y=element_text(size=14),
+      axis.title.y=element_text(size=16),
+      legend.title=element_text(size=14),
+      legend.text=element_text(size=12),
+      legend.position='top') +
+    geom_point(data=df.pred, aes(x = target_budget, y = revenue_pred), colour = "red", size=4)
+
+  # add budget information
+  budget.range <- (seq(1e6, 100e6, 1000000)) / 1000000
+  ytest <- lapply(budget.range, function(x) as.vector(c(x, ytest[-1])))
+  ytest <- as.data.frame(do.call(rbind, ytest))
+  colnames(ytest) <- c('budget', 1:500)
+  yhat <- predict(rf.fit, ytest)
+  df <- data.frame(budget=budget.range, profitability=yhat)
+  df.profit <- data.frame(budget=target.budget, profit=log(profit.ratio, 2))
+  p2 <- ggplot(df, aes(x=budget*1e6, y=profitability)) +
+       geom_line(size=2, color='royalblue3') +
+       theme_bw() +
+       ylab('Movie Profitability') + xlab('Movie budget') +
+       theme(axis.text.x=element_text(size=14),
+          axis.title.x=element_text(size=16),
+          axis.text.y=element_text(size=14),
+          axis.title.y=element_text(size=16)) +
+       geom_point(data=df.profit, aes(x=budget, y=profit), size=4, color='red', pch=18) +
+       scale_x_continuous(trans=log10_trans()) +
+       scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))
+
+
+  #df.all <- data.frame(group=rep('profit', length(profit)), profit=profit)
+  #df.profit <- data.frame(group='profit', profit=profit.ratio)
+   # p2 <- ggplot(df.all, aes(x=group, y=profit)) + 
+   #   geom_boxplot(alpha=0.2, outlier.size = 0) +
+   #   geom_point(alpha=0.3, position='jitter', color='royalblue3') +
+    #  ylim(-5, 5) +
+    #scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+   #   scale_y_log10(breaks = trans_breaks("log2", function(x) 2^x), labels = trans_format("log2", math_format(2^.x))) +
+    #  theme_classic() + 
+    #  xlab('') + ylab('Movie profitability') +
+    #  geom_point(data=df.profit, aes(x=group, y=profit), size=4, color='red', pch=18) +
+    #  theme(axis.text.x=element_text(size=14),
+    #  axis.title.x=element_text(size=16),
+    #  axis.text.y=element_text(size=14),
+    #  axis.title.y=element_text(size=16),
+    #  legend.title=element_text(size=14),
+    #  legend.text=element_text(size=12))
+
+  p3 <- grid.arrange(p2, p1, ncol=2, nrow=1, widths=c(4, 4))
+  return(p3)
 }
 
 'FindTextEmotion' <- function(lexicon, text)
 {
+  ############################################################
+  # This function finds the range of basic human emotions in
+  # the user-defined screenplay. It relies on the NRC lexicon
+  # of human emotions
+  ############################################################
+
   PrintScreenplay(text)
   emotions <- colnames(lexicon)
   words <- row.names(lexicon)
@@ -67,7 +168,6 @@
   words.match <- words.match[!is.na(words.match)]
   temp <- apply(lexicon[words.match, ], 2, sum)
 
-  print('plotting space')
   freq <- round(temp[-c(6,7)]/sum(temp[-c(6,7)]), 2)
   df <- data.frame(emotions=emotions[-c(6,7)], frequency=freq)
   Bar <- gvisBarChart(df, xvar="emotions", yvar="frequency", 
@@ -75,12 +175,12 @@
                   title="Frequency of feelings in movie", 
                   vAxis="{title:''}",
                   hAxis="{title:'Frequency in text'}",
-                  width=900)
+                  width=800)
                   )
   return(Bar)
 }
 
-'ComputeEmotionalRollerCoaster' <- function(text, linux)
+'ComputeEmotionalRollerCoaster' <- function(text)
 {
   ## This code is (heavily) adapated from the one provided by Chris Okugami
   ## Github project can be found here: https://github.com/okugami79/sentiment140
@@ -140,44 +240,11 @@
   
 }
 
-'PredictRevenue' <- function(df, budget)
-{
-  target.budget <- log(as.numeric(budget), 10)
-  df$revenue <- log(df$revenue, 10)
-  df$budget <- log(df$budget, 10)
-  profit <- df$revenue / df$budget
-  status <- rep('loss', nrow(df))
-  status[which(profit>1)] <- 'profit'
-  df$status <- as.factor(status)
 
-  fit <- lm(revenue ~ budget, data=df)
-  revenue.pred <- coef(fit)[1] + target.budget*coef(fit)[2]
-  df.pred <- data.frame(revenue_pred=revenue.pred, 
-                  target_budget=target.budget)
-  a <- signif(coef(fit)[1], digits = 2)
-  b <- signif(coef(fit)[2], digits = 2)
-  textlab <- paste("y = ",b,"x + ",a, sep="")
 
-  p1 <- ggplot(df, aes(y=revenue, x=budget, color=status)) +
-          geom_point(alpha = 0.5) +
-          theme_classic() +
-          geom_abline(intercept = 0, slope=1, 
-            colour = "indianred3", size = 1.5, linetype='dashed') +
-          geom_abline(intercept = a, slope=b, 
-            colour = "royalblue3", size = 2, linetype='solid') +
-          ylim(5, 9) + xlim(5, 9) +
-          ylab('revenue') +
-          annotate("text", x = 7, y = 9, 
-            label = textlab, 
-            color="black", size = 5, 
-            parse=FALSE) +
-          theme(axis.text.x=element_text(size=14),
-            axis.title.x=element_text(size=16),
-            axis.text.y=element_text(size=14),
-            axis.title.y=element_text(size=16)) +
-          geom_point(data=df.pred, aes(x = target_budget, y = revenue_pred), colour = "red", size=4)
-  return(p1)
-}
+#################################################
+############### DEFUNCT CODE ####################
+#################################################
 
 'plotCorInteractive' <- function(df, yvar, xvar)
 {
@@ -258,10 +325,6 @@
             axis.title.x=element_text(size=18),
             axis.text.y=element_text(size=15),
             axis.title.y=element_text(size=18))
-  #if(yvar == 'revenue'){
-    #p1 <- p1 + geom_abline(intercept = 0, slope = 1, size=1, color='indianred2')
-    #p2 <- p2 + geom_abline(intercept = 0, slope = 1, size=1, color='indianred2')
-  #}
 
   p3 <- grid.arrange(p1, p2, ncol=2)
   return(p3)

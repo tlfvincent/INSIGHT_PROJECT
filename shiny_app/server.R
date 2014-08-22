@@ -5,12 +5,14 @@ library(ggplot2)
 library(gridExtra)
 library(RColorBrewer)
 library(glmnet)
-library(googleVis)
+library(randomForest)
 library(RCurl)
 library(rjson)
 library(plyr)
-platform <- sessionInfo()$R.version$platform
-linux <- stringr::str_detect(platform, "linux")
+library(scales)
+library(markdown)
+
+suppressPackageStartupMessages(library(googleVis))
 cols = brewer.pal(9, 'Set1')
 source('data/misc.R')
 
@@ -22,6 +24,9 @@ load(file='data/NRC_emotion_lexicon.Rdata')
 
 # load word2vec word clusters
 load(file='data/word2vec_clusters.Rdata')
+
+# load random forest model for profitability prediction
+load(file='data/random_forest_profit_model.Rdata')
 
 # create matr of correlation between co-occuring movie genres
 #genres <- c("Animation", "Family", "Comedy", "Romance", "Drama", "Indie", 
@@ -35,40 +40,66 @@ load(file='data/word2vec_clusters.Rdata')
 #options(RCHART_WIDTH = 800)
 shinyServer(function(input, output) {
 
-  output$text_budget <- renderText({ 
-      #rating.score <- PredictRating(input$TextArea, input$budget)
-      sprintf('Your movie budget: $%s', input$budget)
-    })
-
-    output$flop_prob <- renderText({ 
-      flop.prob <- PredictFlopProb(input$TextArea, input$budget)
-      sprintf('Flop probability: %s', flop.prob)
-    })
-
-    output$profit_ratio <- renderText({ 
-      profit.ratio <- PredictProfit(input$TextArea, 
+  output$profit_ratio <- renderUI({ 
+    screenplay.profitability <- PredictProfit(input$TextArea, 
                                 input$budget, 
-                                fit, 
+                                rf.fit, 
                                 word2vec.clusters)
-      sprintf('Profit ratio: %s', profit.ratio)
-    })
+    profit.ratio <- log(screenplay.profitability[[1]], 2)
+    input.budget <- log(as.numeric(input$budget), 10)
+    revenue.income <- screenplay.profitability[[2]] * input.budget
+    if(input$budget != 0 & input$TextArea != '')
+    {
+      str1 <- sprintf('The expected profit ratio of this screenplay is %s.', profit.ratio)
+      str2 <- sprintf('For a budget of $%s, you will earn an estimated box office income of $%s.', input$budget, revenue.income)
+      HTML(paste(str1, str2, sep = '<br/>'))
+    }
+    else
+    {
+      str1 <- '<br/><br/>
+                <center> 
+                Please input an estimated budget and the screenplay you wish to evaluate in the panel on the left
+                </center>'
+      HTML(str1)
+    }
+  })
+
+  #output$myList <- renderUI(
+  #  HTML("<ul><li>...text...</li><li>...more text...</li></ul>")
+  #)
+
+
 
   output$predict_revenue <- renderPlot({
-    h1 <- PredictRevenue(tmdb.movie.metadata, input$budget)
-    return(h1)
-    })
+    if(input$budget != 0 & input$TextArea != '')
+    {
+      screenplay.profitability <- PredictProfit(input$TextArea, 
+                                  input$budget, 
+                                  rf.fit, 
+                                  word2vec.clusters)
+      profit.ratio <- screenplay.profitability[[1]]
+      ytest <- screenplay.profitability[[3]]
+      h1 <- PredictRevenue(tmdb.movie.metadata, input$budget, profit.ratio, ytest, rf.fit)
+      return(h1)
+    }
+  })
 
   output$rollercoaster <- renderGvis({
-    r1 <- ComputeEmotionalRollerCoaster(input$TextArea, linux)
-    #r1 <- ComputeEmotionalRollerCoaster(input$InputFile)
-    return(r1)
-    #return(p1)
+    if(input$TextArea != '')
+    {
+      r1 <- ComputeEmotionalRollerCoaster(input$TextArea)
+      return(r1)
+    }
   })
 
-    output$TextEmotion <- renderGvis({
-    r1 <- FindTextEmotion(nrc.lexicon, input$TextArea)
-    return(r1)
+  output$TextEmotion <- renderGvis({
+    if(input$TextArea != '')
+    {
+      r1 <- FindTextEmotion(nrc.lexicon, input$TextArea)
+      return(r1)
+    }
   })
+})
 
     #dInput = reactive({
     #infile = input$InputFile
@@ -120,5 +151,5 @@ shinyServer(function(input, output) {
   #    p2 <- plotCorStatic(tmdb.movie.metadata, input$yvar, input$xvar, cols)
   #    return(p2)
   #  })
-})
+
 

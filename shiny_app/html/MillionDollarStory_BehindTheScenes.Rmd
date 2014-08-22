@@ -1,5 +1,5 @@
 <center>
-# MillionDollarStory
+# MillionDollar$tory
 ## Behind the Scenes
 </center>
 
@@ -21,56 +21,84 @@ Finally, we can also have some fun with the data collected for this analysis, an
 ### The Data
 Financial information on movie budget and box office revenue is not necessarily easy to come by, but some website have accumulated some information on this data, although it may not always be accurate and often contains many missing values. Below is a snipped of information extracted from the numbers.com., which contains budget and domestic/worlddwide revenue data for 5000+ movies.
 
+<center>
 ```{r results='asis', echo=FALSE}
 load(file='movie_profit.Rdata')
 MovieProfit <- gvisTable(as.data.frame(movie.profit[1:200, ]), 
                       options=list(page='enable'))
 print(MovieProfit, "chart")
 ```
+</center>
+
+### Total movie releases by country
+
+```{r results='asis', echo=FALSE}
+load(file='Movie_releases_by_country.Rdata')
+G <- gvisGeoChart(country.hits, locationvar = "country", colorvar = "LogMovieCount", options = list(width = 900, 
+        height = 450, 
+        dataMode = "regions"))
+print(G, "chart")
+```
+
 
 ### Movie revenue across time
-The first analysis we can run is to check the overall relationship movie box office revenue and allocated budget. We can observe a very strong linear relationship between these two variables. 
+The first analysis we can run is to check the overall relationship between movie box office income and allocated movie budget. We can observe a very strong linear relationship between these two variables. 
 
 <center>
 ![Test picture](box_office_revenue_by_year.png)
 </center>
 
+<div class="columns-2">
 <center>
-![Test picture](img1_budget_worldwide_revenue.png)
+<img src="img1_budget_worldwide_revenue.png" height="400px" width="400px" />
+<img src="img2_domestic_worldwide_revenue.png" height="400px" width="400px" />
 </center>
+</div>
+
+We can also check the overall relationship movie box office revenue and allocated budget. We can observe a very strong linear relationship between these two variables. 
+
+
+### Seasonal effects on movie box office revenue
+
+The data extracted from the Rotten Tomatoes and IMDB API can also be used to investigate seasonal and yearly effects on box office profits. Not surprinsgly, we see that the summer months of May, June and July tend to report higher box office profits, presumably because of the timely release of "summer blockbusters". Similarly, the months of November and December also report elevated profit numbers, which would correspond to ThanksGiving and Christmas-related movie releases.
 
 <center>
-![Test picture](img2_domestic_worldwide_revenue.png)
-</center>
-
-The data can also be used to investigate seasonal and yearly effects on box office revenues.
-
-<center>
+<strong>Movie profit by month of the year</strong>
 ![Test picture](img3_profit_by_month.png)
 </center>
 
+When investigating movie box office profit as a function of year of release, we observe a relative increase over time, although the year of 1992 also stands out as particularly high. Further analysis showed that 1992 saw the release of many low budget movies that were widely heralded as blockbusters (see table below):
 <center>
+<strong>Annual movie profits between 1980 and 2014</strong>
 ![Test picture](img4_profit_by_year.png)
 </center>
 
+<center>
 ```{r results='asis', echo=FALSE}
 load(file='movies_released_1992.Rdata')
 ReleasedMovie <- gvisTable(as.data.frame(movies.released.1992), 
                       options=list(page='enable'))
 print(ReleasedMovie, "chart")
 ```
+</center>
 
 ### Are movies getting longer?
+Another feature that can be investigated is how the average runtime of movies has changed over time. Overall, the runtime of movies exhibits a bimodal distribution, with a large peak at around 110 minutes, and a smaller peak for small features at approximately 20 minutes.
 
 <center>
 ![Test picture](movie_runtime_distribution.png)
 </center>
+
+We also observe that the runtime of released movies has fluctuated over time. Although it appears that movies were longer back in the days, this observation may be attributable to sample size effect, given that the number of data points available for this period of time is lower. Overall, there is a stable median runtime of 120 minutes for movies released from 1970 to present.
 
 <center>
 ![Test picture](movie_runtime_vs_year.png)
 </center>
 
 ### The value of a director
+We can also 'monetize' directors according to the average profit their respective movies bring in.
+
+<center>
 ```{r results='asis', echo=FALSE}
 suppressPackageStartupMessages(library(googleVis))
 load(file='top_directors.Rdata')
@@ -78,6 +106,7 @@ DirectorTable <- gvisTable(as.data.frame(top.rank),
                       options=list(page='enable'))
 print(DirectorTable, "chart")
 ```
+</center>
 
 ### The value of actors
 Actor must have acted in at least 5 movies
@@ -100,15 +129,4 @@ print(ActorTable, "chart")
 </center>
 
 ### The colors of movie posters
-
-### The Flop Equation
-
-### Slide with R Code and Output
-
-```{r results='asis'}
-suppressPackageStartupMessages(library(googleVis))
-G <- gvisGeoChart(Exports, locationvar = "Country", colorvar = "Profit", 
-    options = list(width = 360, height = 280, dataMode = "regions"))
-print(G, "chart")
-```
 
