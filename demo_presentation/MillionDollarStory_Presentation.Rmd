@@ -1,5 +1,6 @@
 ---
 title: "MillionDollar$tory"
+subtitle: "Maximizing the profitability of your movie"
 author: "ThomasVincent (tlfvincent@gmail.com)"
 date: "August 15, 2014"
 output: 
