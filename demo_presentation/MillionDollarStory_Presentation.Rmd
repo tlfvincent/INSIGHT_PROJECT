@@ -7,6 +7,9 @@ output:
   ioslides_presentation
 ---
 <style>
+h1 { 
+ color: #000044;    
+}
 h2 { 
  color: #000044;  	
 }
@@ -24,14 +27,23 @@ h3 {
 ## 
 
 <center>
+<strong> ~1.4$ billion profit</strong>
 <img src="poster_frozen.jpg" height="500px" width="800px" />
 </center>
 
 ## 
 
+<div class="columns-2">
+
 <center>
-<img src="poster_glitter.jpeg" height="600px" width="400px" />
+<strong>-17$ million loss</strong>
+<img src="poster_glitter.jpeg" height="460px" width="300px" />
+
+<strong>-90$ million loss</strong>
+<img src="poster_green_lantern.jpg" height="460px" width="300px" />
 </center>
+
+</div>
 
 ## MillionDollar$tory
 <center>
