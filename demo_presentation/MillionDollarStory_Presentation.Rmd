@@ -80,7 +80,7 @@ h3 {
 <br/>
 <br/>
 <center>
-<font size="22">[MillionDollar$tory](http://statofmind.shinyapps.io/MillionDollarStory/)</font>
+<font size="22">[MillionDollar$tory](http://milliondollarstory.me/)</font>
 </center>
 
 
@@ -102,17 +102,34 @@ $$
 <img src="rmspe_prediction_performance.png" height="290px" width="580px" />
 </center>
 
-
 ## About me: Thomas Vincent
 
 <center>
 <img src="about_me.png" height="470px" width="780px" />
 </center>
 
-## Movie analytics
+----
 
 <center>
-<img src="profit_by_genre.png" height="350px" width="700px" />
+<img src="MillionDollarStory_homepage.png" height="450px" width="790px" />
+</center>
+
+----
+
+<center>
+<img src="MillionDollarStory_profitability.png" height="450px" width="790px" />
+</center>
+
+----
+
+<center>
+<img src="MillionDollarStory_sentiment.png" height="450px" width="790px" />
+</center>
+
+----
+
+<center>
+<img src="MillionDollarStory_behindTheScenes.png" height="450px" width="790px" />
 </center>
 
 ## Predicting the profitability of a movie
