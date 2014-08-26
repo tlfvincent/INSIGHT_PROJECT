@@ -66,7 +66,7 @@ h3 {
 <br/>
 <br/>
 <center>
-<img src="MillionDollarStory_workflow.png" height="350px" width="800px" />
+<img src="MillionDollarStory_workflow.png" height="400px" width="800px" />
 </center>
 
 ## 
