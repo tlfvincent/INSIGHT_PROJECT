@@ -132,19 +132,15 @@ $$
 <img src="MillionDollarStory_behindTheScenes.png" height="450px" width="790px" />
 </center>
 
-## Predicting the profitability of a movie
-- Because we only use screenplay information, the main challenge is the identification, extraction and selection of features that may be available in movie scripts.
-
-- Some features that were tried but failed to produce convincing results: readability index, sentiment analysis, tf-idf, tf-idf with POS tagging.
-
-- word2vec - Efficient Estimation of Word Representations in Vector Space (published by Google).
-
-- Allows to cluster words with similar meaning. These clusters can be used as features in a predictive model.
-
 ## Project Toolkit
 <center>
 <img src="project_toolkit.png" height="500px" width="800px" />
 </center>
+
+## word2vec
+- Relies on neural network to learn words and concepts in text documents.
+- Similar words arrange themselves near each other in this high-dimensional vector space.
+- Allows one to solve simple analogies by performing arithmetic on the word vectors and examining the nearest words in the vector space.
 
 ## Movie analytics
 - The data also offers the opportunity for some sentiment analysis of movie scripts.
