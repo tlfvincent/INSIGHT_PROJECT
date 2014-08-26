@@ -87,7 +87,7 @@ h3 {
 ## Predicting the profitability of a movie
 - Some features that were tried but failed to produce convincing results: readability index, sentiment analysis, tf-idf, tf-idf with POS tagging.
 
-- word2vec - Efficient Estimation of Word Representations in Vector Space (published by Google).
+- word2vec - Efficient Estimation of Word Representations in High-Dimensional Vector Space using continuous bag-of-words and neural networks (published by Google).
 
 - Allows to cluster words with similar meaning. These clusters can be used as features in a predictive model.
 
