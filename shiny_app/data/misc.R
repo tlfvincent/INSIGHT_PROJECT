@@ -10,75 +10,71 @@
   write.table(text, file=input.file, quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
 
-#'PredictFlopProb' <- function(text, budget)
-#{
-#  PrintScreenplay(text)
-  #y.pred <- predict(fit, X.test, lambda=fit$lambda.min)
-  #flop.prob <- predict(fit, X)
-#  flop.prob <- 0.95
-#  return(flop.prob)
-#}
-
-'PredictProfit' <- function(text, budget, rf.fit, word2vec.clusters)
+'PredictProfit' <- memoise(function(text, budget, rf.fit, word2vec.clusters, word2vec.test, original=TRUE, title='')
 {
   ############################################################
   # This function predicts the expected profit ration from 
   # user-defined budget and screenplay text. The underlying
   # algorithm relies on random forest regression
   ############################################################
-
-  # count number of word2vec clusters
-  PrintScreenplay(text)
-  target.budget <- as.numeric(budget) / 1000000
+  target.budget <- as.numeric(budget)
   nb.clusters <- unique(word2vec.clusters[,2])
-  screenplay <- scan('input.txt', sep=' ', what='raw()')
-  screenplay.words <- table(as.vector(screenplay))
-  words.freq <- table(screenplay.words)
-  words.match <- match(names(words.freq), word2vec.clusters[, 1])
-  #remove NAs
-  index.na <- which(is.na(words.match=='TRUE'))
-  if(length(index.na) > 0)
+  
+  # count number of word2vec clusters
+  if(original==TRUE)
   {
-    words.match <- words.match[-index.na]
-    words.freq <- words.freq[-index.na]
+    PrintScreenplay(text)
+    #target.budget <- as.numeric(budget) / 1000000
+    screenplay <- scan('input.txt', sep=' ', what='raw()')
+    screenplay.words <- table(as.vector(screenplay))
+    #screenplay <- scan('input.txt', sep='\n', what='raw()')
+    #screenplay.words <- unlist(sapply(screenplay, function(x) strsplit(x, '\\s+', perl=TRUE)[[1]]))
+    words.freq <- table(screenplay.words)
+    words.match <- match(names(words.freq), word2vec.clusters[, 1])
+    #remove NAs
+    index.na <- which(is.na(words.match=='TRUE'))
+    if(length(index.na) > 0)
+    {
+      words.match <- words.match[-index.na]
+      words.freq <- words.freq[-index.na]
+    }
+    # populate word2vec test vector
+    word2vec.screenplay <- mat.or.vec(length(nb.clusters), 1)
+    for(w in 1:length(words.match))
+    {
+      index.col <- as.numeric(word2vec.clusters[words.match[w], 2]) + 1
+      word2vec.screenplay[index.col] <- word2vec.screenplay[index.col] + as.vector(words.freq[w])
+    }
   }
-  # populate word2vec test vector
-  word2vec.test <- mat.or.vec(length(nb.clusters), 1)
-  for(w in 1:length(words.match))
+  else
   {
-    index.col <- as.numeric(word2vec.clusters[words.match[w], 2]) + 1
-    word2vec.test[index.col] <- word2vec.test[index.col] + as.vector(words.freq[w])
+    index.title <- which(row.names(word2vec.test) == title)
+    word2vec.screenplay <- word2vec.test[index.title, ]
   }
+
   # add budget information
-  ytest <- c(target.budget, word2vec.test)
+  ytest <- c(target.budget, word2vec.screenplay)
   names(ytest) <- c('budget', 1:500)
   profit.ratio <- 2^(predict(rf.fit, ytest))
   revenue.income <- round(profit.ratio * target.budget , 1)
   print(profit.ratio)
   return(list(profit.ratio, revenue.income, ytest))
-}
+})
 
 'PredictRevenue' <- function(df, budget, profit.ratio, ytest, rf.fit)
 {
-  print('Running predict revenue')
-  #target.budget <- log(as.numeric(budget), 10)
-  target.budget <- as.numeric(budget)
-  #df$revenue <- log(df$revenue, 10)
-  #df$budget <- log(df$budget, 10)
-  #profit <- log((df$revenue / df$budget), 2)
+  ################################################################
+  # This function predicts the expected profit ratio as a function
+  # of a range of bdget and user-defined screenplay text. 
+  # The underlying predictions are obtained from a random forest regression
+  # model that was fitted earlier.
+  ############################################################
+  target.budget <- as.numeric(budget)*1e6
   profit <- df$revenue / df$budget
   status <- rep('loss', nrow(df))
   status[which(profit > 1)] <- 'profit'
   df$status <- as.factor(status)
   df <- df[which(df$budget >= 1e4), ]
-
-  #fit <- lm(log(revenue, 10) ~ log(budget, 10), data=df)
-  #revenue.pred <- coef(fit)[1] + target.budget*coef(fit)[2]
-  #df.pred <- data.frame(revenue_pred=revenue.pred, 
-  #                target_budget=target.budget)
-  #a <- signif(coef(fit)[1], digits = 2)
-  #b <- signif(coef(fit)[2], digits = 2)
-  #textlab <- paste("y = ",b,"x + ",a, sep="")
 
   revenue.pred <- profit.ratio * target.budget
   df.pred <- data.frame(revenue_pred=revenue.pred, 
@@ -90,7 +86,7 @@
     theme_classic() +
     geom_abline(intercept = 0, slope=1, 
       colour = "indianred3", size = 1.5, linetype='dashed') +
-    ylab('Movie Revenue') + xlab('Movie budget') +
+    ylab('Movie Revenue (in $)') + xlab('Movie budget (in $)') +
     scale_colour_manual(values = cols) + 
     scale_y_continuous(trans=log10_trans()) + 
     scale_x_continuous(trans=log10_trans()) +
@@ -106,26 +102,37 @@
     geom_point(data=df.pred, aes(x = target_budget, y = revenue_pred), colour = "red", size=4)
 
   # add budget information
-  budget.range <- (seq(1e6, 100e6, 1000000)) / 1000000
-  ytest <- lapply(budget.range, function(x) as.vector(c(x, ytest[-1])))
-  ytest <- as.data.frame(do.call(rbind, ytest))
-  colnames(ytest) <- c('budget', 1:500)
-  yhat <- predict(rf.fit, ytest)
-  df <- data.frame(budget=budget.range, profitability=2^yhat)
-  #df.profit <- data.frame(budget=target.budget, profit=log(profit.ratio, 2))
+  budget.range <- (seq(1e6, 200e6, 1000000)) / 1000000
+  ytest2 <- lapply(budget.range, function(x) as.vector(c(x, ytest[-1])))
+  ytest2 <- as.data.frame(do.call(rbind, ytest2))
+  colnames(ytest2) <- c('budget', 1:500)
+  yhat <- predict(rf.fit, ytest2)
+  yhat <- 2^yhat
+  max.yhat <- max(yhat)
+  max.budget <- budget.range[which.max(yhat)]
+  df.segment <- data.frame(x=c(0, max.budget*1e6), 
+                            y=c(max.yhat, 0), 
+                            vx=c(max.budget*1e6, max.budget*1e6), 
+                            vy=c(max.yhat, max.yhat))
+
+  df <- data.frame(budget=budget.range, profitability=yhat)
   df.profit <- data.frame(budget=target.budget, profit=profit.ratio)
+  #df.profit <- data.frame(budget=target.budget, profit=log(profit.ratio, 2))
   p2 <- ggplot(df, aes(x=budget*1e6, y=profitability)) +
        geom_line(size=2, color='royalblue3') +
-       theme_bw() +
-       ylim(0, 10) +
-       ylab('Movie Profitability') + xlab('Movie budget') +
+       theme_classic() +
+      ylab('Movie Profitability') + xlab('Movie budget (in $)') +
+       annotate("text", label='Maximum profit', x=max.budget*1e6, y=max.yhat+0.25, size=5, 
+      fontface="bold.italic") +
+       geom_segment(df.segment, mapping=aes(x = x, y = y, xend = vx, yend = vy), 
+                  size=1.3, linetype='dotted') +
        theme(axis.text.x=element_text(size=14),
           axis.title.x=element_text(size=16),
           axis.text.y=element_text(size=14),
           axis.title.y=element_text(size=16)) +
-       geom_point(data=df.profit, aes(x=budget, y=profit), size=4, color='red', pch=18) #+
-       #scale_x_continuous(trans=log10_trans()) +
-       #scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))
+       geom_point(data=df.profit, aes(x=budget, y=profit), size=6, color='red', pch=18) +
+       scale_x_continuous(trans=log10_trans()) +
+       scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))
 
 
   #df.all <- data.frame(group=rep('profit', length(profit)), profit=profit)
@@ -182,13 +189,15 @@
   return(Bar)
 }
 
-'ComputeEmotionalRollerCoaster' <- function(text)
+'ComputeEmotionalRollerCoaster' <- memoise(function(text)
 {
   ## This code is (heavily) adapated from the one provided by Chris Okugami
   ## Github project can be found here: https://github.com/okugami79/sentiment140
-  text <- sapply(text, function(x) strsplit(x, split='\\n', perl=TRUE))
-  text <- text[[1]]
+  #text <- sapply(text, function(x) strsplit(x, split='\\n', perl=TRUE))
+  #text <- text[[1]]
   #x <- sentiment(text)
+  text <- sapply(text, function(x) strsplit(x, split='\\. ', perl=TRUE))
+  text <- text[[1]]
   r <- dynCurlReader()  
   # get rid of single quote 
   text <- gsub("'", ' ' ,text)
@@ -201,7 +210,7 @@
               verbose = FALSE,
               post = 1L, 
               writefunction = r$update)
-  print('finished sentiment 140')
+
   sentiment.out <- lapply(r$value(), fromJSON)
   polarity <- unlist(lapply(sentiment.out[[1]]$data, function(x) x$polarity))
   polarity <- polarity - 2
@@ -226,7 +235,7 @@
                                       width=950))
   return(SteppedArea)
   
-}
+})
 
 
 

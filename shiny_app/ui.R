@@ -2,6 +2,11 @@ require(rCharts)
 library(shinyBS)
 options(RCHART_LIB = 'polycharts')
 
+# load movie screenplays
+load(file='data/all_movie_screenplay.Rdata')
+available.movies <- names(movie.screenplay)
+
+
 inputTextarea <- function(inputId, value="", nrows, ncols) {
   tagList(
     singleton(tags$head(tags$script(src = "textarea.js"))),
@@ -13,14 +18,6 @@ inputTextarea <- function(inputId, value="", nrows, ncols) {
     )
 }
 
-dialogue <- "Goooooooood morning Vietnam! It's 0600 hours. What does the O stand for? 
-O my God, it's early! Speaking of early, let's hear it for that Marty Lee Drywitz. 
-Silky smooth sounds, making me sound like Peggy Lee...Gooooooooood-byyyyyyye Vietnaaaaam! 
-That's right, I'm history... I'm outta here. I got the lucky ticket home, baby. 
-Rollin, rollin, rollin'... keep them wagons rollin', rawhide! 
-Yeah, that's right... the final Adrian Cronauer broadcast... and this one is brought to you by our friends at the Pentagon. 
-Remember the people who brought you Korea? 
-That's right, the U.S. Army. If it's being done correctly, here or abroad, it's probably not being done by the Army."
 
 shinyUI(fluidPage(
   #theme = "bootstrap.css",
@@ -52,17 +49,26 @@ shinyUI(fluidPage(
   fluidRow(
     column(3,
       absolutePanel(id = "controls", class = "modal", fixed = TRUE, draggable = TRUE,
-        top = 140, left = "auto", right = 1080, bottom = "auto", 
+        top = 120, left = "auto", right = 1080, bottom = "auto", 
         width = 270, height = "auto", cursor="default",
       #wellPanel(
         h4("Import data here"),
  
     # Button to import data
       h5(helpText("Enter an estimated movie budget")),
-        textInput('budget', "", "0"),
+      h5(helpText("(in millions $)")),
+        textInput('budget', "", "10"),
+        h5(helpText("Select a movie:")),
+        selectizeInput(
+       'MovieSelect', '', choices = available.movies,
+        options = list(
+          placeholder = 'Select a movie',
+          onInitialize = I('function() { this.setValue(""); }')
+        )
+      ),
+        h5(helpText("Or enter your own screenplay!")),
         # create input text area to paste script
-        h5(helpText("Enter your movie screenplay")),
-        inputTextarea('TextArea', '', 16, 25),
+        inputTextarea('TextArea', '', 12, 25),
         #textInput('TextArea', '',dialogue),
         submitButton('Update View', icon("refresh"))
       )
@@ -72,7 +78,7 @@ shinyUI(fluidPage(
   # of the generated distribution
     column(9,
       absolutePanel(id = "controls", class = "modal", fixed = FALSE, draggable = TRUE,
-        top = 140, left = "auto", right = 20, bottom = "auto", 
+        top = 120, left = "auto", right = 20, bottom = "auto", 
         width = 1000, height = "auto", cursor="default",
       tabsetPanel(type = "tabs", position = "above", 
         tabPanel(h4("App"), 

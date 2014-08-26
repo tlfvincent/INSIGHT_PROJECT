@@ -1,5 +1,9 @@
+<br/>
+<base target="_blank">
 <center>
-# MillionDollar$tory
+<font size="20">[MillionDollar$tory](https://rawgit.com/tlfvincent/INSIGHT_PROJECT/master/demo_presentation/MillionDollarStory_Presentation.html)</font>
+</center>
+<center>
 ## Behind the Scenes
 </center>
 
@@ -102,7 +106,7 @@ We also observe that the runtime of released movies has fluctuated over time. Al
 </center>
 
 ### The value of a director
-We can also 'monetize' directors according to the average profit their respective movies bring in.
+We can also 'monetize' the value of movie directors according to the average profit their respective movies bring in.
 
 <center>
 ```{r results='asis', echo=FALSE}
@@ -115,7 +119,8 @@ print(DirectorTable, "chart")
 </center>
 
 ### The value of actors
-Actor must have acted in at least 5 movies
+The value of actors can also be monetized according to the average profit their respective movies bring in. Here, we restricted the analysis to actors that had appeared in at least 5 movies. Furthermore, the order in which actors appeared in the casting list was not taken into account, which could be an area for improvement in future work.
+
 
 <center>
 ```{r results='asis', echo=FALSE}
@@ -127,6 +132,8 @@ print(ActorTable, "chart")
 ```
 </center>
 
+## Sentiment analysis of screenplays by genre
+We can use the NRC emption lexicon to check the prevalence of human sentiments across different movie genres. "The lexicon has human annotations of emotion associations for more than 24,200 word senses (about 14,200 word types). The annotations include whether the target is positive or negative, and whether the target has associations with eight basic emotions (joy, sadness, anger, fear, surprise, anticipation, trust, disgust)." and can be accessed [here]](http://www.saifmohammad.com/WebPages/ResearchInterests.html).
 
 <center>
 ![Test picture](movie_genre_NRC_lexicon.png)

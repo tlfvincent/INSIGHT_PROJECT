@@ -5,6 +5,7 @@ input[type="number"] {
 body {
     background-image: url('tile2.png');
     background-color: #cccccc;
+    width:100%;
 }
 
 div.outer {
